@@ -1,0 +1,103 @@
+// _prim means primitive
+// where is the "end" symbol???
+// why are there so many conflicts in this grammar?
+//   how can i resolve them?
+
+Syntax Summary
+==============
+
+program:
+--------
+statement*
+
+statement:
+----------
+identifier prim_expr* :
+case integer prim_expr* :
+case identifier prim_expr* :
+compound_statement
+if prim_expr statement
+if prim_expr statement else statement
+while prim_expr statement
+for ( statement ; expr ; statement* ) statement
+try compound_statement catch compound_statement
+switch prim_expr compound_statement
+break
+continue
+identifier prim_expr*
+nonident_prim_expr identifier prim_expr*
+nonident_prim_expr = expr
+nonident_prim_expr += expr
+nonident_prim_expr -= expr
+nonident_prim_expr ++
+nonident_prim_expr --
+;
+
+compound_statement:
+-------------------
+{ statement* }
+
+expr:
+-----
+expr && expr
+expr || expr
+expr & expr
+expr | expr
+expr ^ expr
+expr == expr
+expr != expr
+expr < expr
+expr > expr
+expr <= expr
+expr >= expr
+expr + expr
+expr - expr
+expr * expr
+expr / expr
+expr % expr
+nonident_prim_expr
+func_prim_expr
+
+func_prim_expr:
+---------------
+identifier prim_expr*
+nonident_prim_expr identifier prim_expr*
+- func_prim_expr
+~ func_prim_expr
+! func_prim_expr
+identifier :: prim_expr
+nonident_prim_expr :: prim_expr
+
+prim_expr:
+----------
+nonident_prim_expr
+identifier_prim
+prim_expr :: prim_expr
+
+nonident_prim_expr:
+-------------------
+$ prim_expr
+nonident_prim_expr . identifier
+nonident_prim_expr . size
+nonident_prim_expr [ expr ]
+string
+integer
+float
+( number number number )
+game
+level
+local
+parm
+self
+group
+( expr )
+- nonident_prim_expr
+~ nonident_prim_expr
+! nonident_prim_expr
+NULL
+NIL
+
+number:
+-------
+float
+integer
