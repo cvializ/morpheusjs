@@ -58,6 +58,18 @@ expr % expr
 nonident_prim_expr
 func_prim_expr
 
+// These are function calls
+//
+// e.g. self[local.i] runto $player
+//      1.            2.    3.
+//      1. nonident_prim_expr 2. identifier 3. prim_expr
+// e.g. waitthread craters_cover
+//      1.     2.
+//      1. identifier prim_expr
+// e.g. $mg42_middle1 thread global/mg42_active.scr::mg42
+        1.            2.     3:(4.                   5.)
+        1. nonident_prim_expr 2. identifier 3. prim_expr
+        (4. indentifier 5. prim_expr )
 func_prim_expr:
 ---------------
 identifier prim_expr*
@@ -68,22 +80,25 @@ nonident_prim_expr identifier prim_expr*
 identifier :: prim_expr
 nonident_prim_expr :: prim_expr
 
+// Can be assigned as a value. You can assign these to non_ident_prim_expr
+// These are also arguments to functions
 prim_expr:
 ----------
 nonident_prim_expr
 identifier_prim
-prim_expr :: prim_expr
+prim_expr :: prim_expr                          // array notation
 
+// These can be given a value. You can assign values to these expressions
 nonident_prim_expr:
 -------------------
-$ prim_expr
-nonident_prim_expr . identifier
-nonident_prim_expr . size
-nonident_prim_expr [ expr ]
+$ prim_expr                                     // targetname
+nonident_prim_expr . identifier                 // accessor
+nonident_prim_expr . size                       // not sure
+nonident_prim_expr [ expr ]                     // array accessor
 string
 integer
 float
-( number number number )
+( number number number )                        // vector
 game
 level
 local

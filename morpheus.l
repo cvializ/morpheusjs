@@ -19,81 +19,119 @@ DQUOTE      "\""
 <COMMENT>[^\n]*       /* consume */
 <COMMENT>\n           this.begin('INITIAL');
 
-\s+       /* ignore */
-{INTEGER} return 'INTEGER'
-{FLOAT}   return 'FLOAT'
-{QUOTE}.*{QUOTE} return 'STRING';
-{DQUOTE}.*{DQUOTE} return 'STRING';
-if        return 'IF'
-end       return 'END'
-else      return 'ELSE'
-while     return 'WHILE'
-for       return 'FOR'
-continue  return 'CONTINUE'
-case      return 'CASE'
-break     return 'BREAK'
-switch    return 'SWITCH'
-try       return 'TRY'
-catch     return 'CATCH'
 
-local     return 'LOCAL'
-level     return 'LEVEL'
-game     return 'GAME'
-parm     return 'PARM'
-self     return 'SELF'
-group     return 'GROUP'
+\s+                             %{
+                                    if (yytext.match(/\r|\n/)) {
+                                        parser.newLine = true;
+                                    }
 
-NULL      return 'NULL'
-NIL       return 'NIL'
+                                    if (parser.restricted && parser.newLine) {
+                                        this.unput(yytext);
+                                        parser.restricted = false;
+                                        return ";";
+                                    }
+                                %}
+"/*"(.|\r|\n)*?"*/"             %{
+                                    if (yytext.match(/\r|\n/)) {
+                                        parser.newLine = true;
+                                    }
 
-{ID}      return 'IDENTIFIER'
+                                    if (parser.restricted && parser.newLine) {
+                                        this.unput(yytext);
+                                        parser.restricted = false;
+                                        return ";";
+                                    }
+                                %}
+"//".*($|\r\n|\r|\n)            %{
+                                    if (yytext.match(/\r|\n/)) {
+                                        parser.newLine = true;
+                                    }
 
-"::"      return '::'
+                                    if (parser.restricted && parser.newLine) {
+                                        this.unput(yytext);
+                                        parser.restricted = false;
+                                        return ";";
+                                    }
+                                %}
 
-"+="      return '+='
-"-="      return '-='
-"*="      return '*='
-"/="      return '/='
-"%="      return '%='
 
-'++'      return '++'
-'--'      return '--'
-
-"&&"      return '&&'
-"||"      return '||'
-"^"       return '^'
-"=="      return '=='
-"!="      return '!='
-"<="      return '<='
-">="      return '>='
-"<"       return '<'
-">"       return '>'
-
-"&"       return '&'
-"|"       return '|'
-"+"       return '+'
-"-"       return '-'
-"*"       return '*'
-"/"       return '/'
-"%"       return '%'
-
-"$"       return '$'
-"."       return '.'
-"["       return '['
-"]"       return ']'
-"("       return '('
-")"       return ')'
-"{"       return '{'
-"}"       return '}'
-":"       return ':'
-";"       return ';'
-","       return ','
-
-"="       return '='
-"!"       return '!'
-"~"       return '~'
-
-<<EOF>>   return 'EOF'
-.         return 'INVALID'
+{QUOTE}.*{QUOTE}                parser.restricted = false; return 'STRING';
+{DQUOTE}.*{DQUOTE}              parser.restricted = false; return 'STRING';
+break                           parser.restricted = true; return 'BREAK'
+case                            return 'CASE'
+catch                           return 'CATCH'
+continue                        parser.restricted = true; return 'CONTINUE'
+default                         return 'DEFAULT'
+else                            return 'ELSE'
+end                             parser.retricted = true; return 'END' // like javascript return
+if                              return 'IF'
+for                             return 'FOR'
+switch                          return 'SWITCH'
+try                             return 'TRY'
+while                           return 'WHILE'
+local                           return 'LOCAL'
+level                           return 'LEVEL'
+game                            return 'GAME'
+parm                            return 'PARM'
+self                            parser.restricted = false; return 'SELF' // like javascript this
+group                           return 'GROUP'
+true                            parser.restricted = false; return 'TRUE';
+false                           parser.restricted = false; return 'FALSE';
+NULL                            parser.restricted = false; return 'NULL'
+NIL                             parser.restricted = false; return 'NIL'
+{ID}                            parser.restricted = false; return 'IDENTIFIER'
+{INTEGER}                       parser.restricted = false; return 'INTEGER'
+{FLOAT}                         parser.restricted = false; return 'FLOAT'
+"::"                            return '::'
+"+="                            return '+='
+"-="                            return '-='
+"*="                            return '*='
+"/="                            return '/='
+"%="                            return '%='
+'++'                            parser.restricted = false; return '++'
+'--'                            parser.restricted = false; return '--'
+"&&"                            return '&&'
+"||"                            return '||'
+"^"                             return '^'
+"=="                            return '=='
+"!="                            return '!='
+"<="                            return '<='
+">="                            return '>='
+"<"                             return '<'
+">"                             return '>'
+"&"                             return '&'
+"|"                             return '|'
+"+"                             return '+'
+"-"                             return '-'
+"*"                             return '*'
+"/"                             return '/'
+"%"                             return '%'
+"$"                             return '$'
+"."                             return '.'
+"["                             parser.restricted = false; return '['
+"]"                             return ']'
+"("                             parser.restricted = false; return '('
+")"                             return ')'
+"{"                             parser.restricted = false; return '{'
+"}"                             return '}'
+":"                             return ':'
+";"                             parser.restricted = false; return ';'
+","                             return ','
+"="                             return '='
+"!"                             parser.restricted = false; return '!'
+"~"                             parser.restricted = false; return '~'
+<<EOF>>                         return 'EOF'
+.                               return 'ERROR'
 
 %%
+
+/* Begin Lexer Customization Methods */
+var _originalLexMethod = lexer.lex;
+
+lexer.lex = function() {
+    parser.wasNewLine = parser.newLine;
+    parser.newLine = false;
+
+    return _originalLexMethod.call(this);
+};
+/* End Lexer Customization Methods */

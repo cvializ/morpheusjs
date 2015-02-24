@@ -1,4 +1,5 @@
-my_main_label:
+
+my_main_label local.test:
 
 local.value = 3
 local.prop[local.value] = "cool"
@@ -9,19 +10,19 @@ local.test = ( 3.2 -2.000 111.1 )
 local.wow = NULL
 local.me = !self
 
-if (local.me) {
-    local.me = !self
-}
+if (local.me) { local.me = !self }
 
 while (level.lol) {
     local.phrase = "Keep laughing, bub"
 }
 
 // This loop increases my love ten times
-for (local.i = 0; local.i < 10; local.i++) {
-    local.love++
-    continue // next itern
-}
+//level waittill spawn
+
+    for (local.i=1;local.i<$bazooka_wall.size+1;local.i++)
+    {
+        
+    }
 
 switch (local.type) {
     case 10:
@@ -36,11 +37,12 @@ cool_label:
 another_cool_label:
 labels_galore:
 
-try {
-    // yea
-} catch {
-    // ok
-}
+end
+
+//try {
+//    // yea
+//} catch {
+//    // ok
+//}
 
 local.test = "duck"
-//$(local.test) notsolid
