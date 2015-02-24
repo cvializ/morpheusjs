@@ -71,14 +71,8 @@ statement
     | switch_statement
     | try_statement
     | expression_statement
-    | identifier member_expression* ':' // method definition
+    | identifier primary_expression* ':' // method definition
     //| identifier prim_expr*
-    //| nonident_prim_expr identifier prim_expr*
-    //| nonident_prim_expr '=' expr
-    //| nonident_prim_expr '+=' expr
-    //| nonident_prim_expr '-=' expr
-    //| nonident_prim_expr '++'
-    //| nonident_prim_expr '--'
     ;
 
 
@@ -181,7 +175,7 @@ literal
 
 member_expression
     : primary_expression
-    // | function_expression // ?
+    | function_expression // ?
     | member_expression '[' expression ']'
     | member_expression '.' identifier
     | '$' '(' member_expression ')'
@@ -190,7 +184,7 @@ member_expression
 assignment_expression
     : conditional_expression
     | lefthandside_expression '=' assignment_expression
-    | lefthandside_expression assignment_operator member_expression
+    | lefthandside_expression assignment_operator assignment_expression
     ;
 
 assignment_operator
@@ -282,6 +276,7 @@ unary_expr
     | '-' unary_expression
     | '~' unary_expression
     | '!' unary_expression
+    | ISALIVE unary_expression
     ;
 
 unary_expression
@@ -290,9 +285,14 @@ unary_expression
     ;
 
 postfix_expression
+    : call_expression
+    | call_expression '++'
+    | call_expression '--'
+    ;
+
+call_expression
     : lefthandside_expression
-    | lefthandside_expression '++'
-    | lefthandside_expression '--'
+    | call_expression call_literal lefthandside_expression
     ;
 
 lefthandside_expression
@@ -301,32 +301,16 @@ lefthandside_expression
     ;
 
 /*call_expression
-    : primary_expression identifier primary_expression
+    : member_expression call_literal primary_expression*
     ;*/
 
-/*expr
-    : expr '&&' expr
-    | expr '||' expr
-    | expr '&' expr
-    | expr '|' expr
-    | expr '^' expr
-    | expr '==' expr
-    | expr '!=' expr
-    | expr '<' expr
-    | expr '>' expr
-    | expr '<=' expr
-    | expr '>=' expr
-    | expr '+' expr
-    | expr '-' expr
-    | expr '*' expr
-    | expr '/' expr
-    | expr '%' expr
-    //| '!' expr
-    //| '-' expr %prec UMINUS
-    | nonident_prim_expr
-    | func_prim_expr
-    //| identifier // not in original
-    ;*/
+call_literal
+    : THREAD
+    | WAITTHREAD
+    | EXEC
+    | WAITEXEC
+    | WAITTILL
+    ;
 
 func_prim_expr
     //: identifier prim_expr*
@@ -336,29 +320,6 @@ func_prim_expr
     //| '!' func_prim_expr
     | identifier '::' prim_expr
     | nonident_prim_expr '::' prim_expr
-    ;
-
-prim_expr
-    : nonident_prim_expr
-    //| identifier_prim // what the hell is this
-    | prim_expr '::' prim_expr
-    ;
-
-nonident_prim_expr
-    : '$' '(' prim_expr ')' // targetname operator
-    //| nonident_prim_expr '.' identifier
-    //| nonident_prim_expr '.' size // what is this for?
-    //| nonident_prim_expr '[' expr ']'
-    //| string
-    //| number
-    //| '(' number number number ')'
-    //| builtin_vars
-    //| '(' expr ')'
-    //| '-' nonident_prim_expr %prec UMINUS
-    | '~' nonident_prim_expr
-    //| '!' nonident_prim_expr
-    | NULL
-    | NIL
     ;
 
 builtin_vars

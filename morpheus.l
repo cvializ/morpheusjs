@@ -75,10 +75,16 @@ game                            return 'GAME'
 parm                            return 'PARM'
 self                            parser.restricted = false; return 'SELF' // like javascript this
 group                           return 'GROUP'
-true                            parser.restricted = false; return 'TRUE';
-false                           parser.restricted = false; return 'FALSE';
+true                            parser.restricted = false; return 'TRUE'
+false                           parser.restricted = false; return 'FALSE'
 NULL                            parser.restricted = false; return 'NULL'
 NIL                             parser.restricted = false; return 'NIL'
+thread                          return 'THREAD'
+waitthread                      return 'WAITTHREAD'
+exec                            return 'EXEC'
+waitexec                        return 'WAITEXEC'
+waittill                        return 'WAITTILL'
+isalive                         return 'ISALIVE'
 {ID}                            parser.restricted = false; return 'IDENTIFIER'
 {INTEGER}                       parser.restricted = false; return 'INTEGER'
 {FLOAT}                         parser.restricted = false; return 'FLOAT'

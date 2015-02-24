@@ -17,11 +17,15 @@ while (level.lol) {
 }
 
 // This loop increases my love ten times
-//level waittill spawn
+level waittill spawn
 
     for (local.i=1;local.i<$bazooka_wall.size+1;local.i++)
     {
-        
+        if (isalive $bazooka_wall[local.i])
+        {
+            $bazooka_wall[local.i] threatbias ignoreme
+            $bazooka_wall[local.i] dontdropweapons
+        }
     }
 
 switch (local.type) {
