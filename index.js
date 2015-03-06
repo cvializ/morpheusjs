@@ -6,4 +6,8 @@ console.log(toParse);
 var contents = fs.readFileSync(toParse);
 console.log(contents.toString('utf8'));
 
-console.log(parser.parse(contents.toString('utf8')));
+var ast = parser.parse(contents.toString('utf8'));
+
+debugger;
+
+console.dir(ast);

@@ -1,5 +1,5 @@
 
-my_main_label local.test:
+//my_main_label local.test:
 
 local.value = 3
 local.prop[local.value] = "cool"
@@ -9,6 +9,7 @@ local.negative_test = ( -3 2 1 )
 local.test = ( 3.2 -2.000 111.1 )
 local.wow = NULL
 local.me = !self
+local.x = 1::2::3::4
 
 if (local.me) { local.me = !self }
 
@@ -23,8 +24,8 @@ level waittill spawn
     {
         if (isalive $bazooka_wall[local.i])
         {
-            $bazooka_wall[local.i] threatbias ignoreme
-            $bazooka_wall[local.i] dontdropweapons
+            //$bazooka_wall[local.i] threatbias ignoreme
+            //$bazooka_wall[local.i] dontdropweapons
         }
     }
 
@@ -43,10 +44,10 @@ labels_galore:
 
 end
 
-//try {
-//    // yea
-//} catch {
-//    // ok
-//}
+try {
+    // yea
+} catch (e) {
+    // ok
+}
 
 local.test = "duck"
