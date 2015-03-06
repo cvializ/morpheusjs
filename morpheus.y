@@ -56,7 +56,7 @@ statement
     | switch_statement
     | try_statement
     | expression_statement
-    | identifier primary_expression* ':' // method definition
+    | labelled_statement
     //| identifier prim_expr*
     ;
 
@@ -223,6 +223,32 @@ default_clause
         }
     ;
 
+labelled_statement
+    : IDENTIFIER labelled_statement_arguments ':'
+        {
+            $$ = new LabeledStatementNode(new IdentifierNode($1, createSourceLocation(null, @1, @1)), $3, createSourceLocation(null, @1, @3));
+        }
+    ;
+
+labelled_statement_arguments
+    : labelled_statement_arguments labelled_statement_argument
+        {
+            $$ = $1.concat($2);
+        }
+    | // empty
+        {
+            $$ = [];
+        }
+    ;
+
+labelled_statement_argument
+    : LOCAL '.' IDENTIFIER
+        {
+            // TODO: is this ok?
+            $$ = new MemberExpressionNode($1, $3, false, createSourceLocation(null, @1, @3));
+        }
+    ;
+
 expression_statement
     : expression ';'
         {
@@ -233,6 +259,7 @@ expression_statement
             $$ = new ExpressionStatementNode($1, createSourceLocation(null, @1, @1));
         }
     ;
+
 
 primary_expression
     : builtin_vars

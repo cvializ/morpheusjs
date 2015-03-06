@@ -1,5 +1,5 @@
 
-//my_main_label local.test:
+my_main_label local.test:
 
 local.value = 3
 local.prop[local.value] = "cool"
