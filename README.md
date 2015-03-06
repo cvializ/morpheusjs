@@ -14,3 +14,26 @@ Project Features
 - A parser for morpheus script files to verify correct output
 - A transpiler(?) to convert JavaScript to morpheus
 - A test suite to mock the MOH game environment to allow unit testing of morpheusjs script projects
+
+Setup
+-----
+
+1. Clone the repository
+```shell
+git clone https://github.com/cvializ/morpheusjs`
+```
+
+2. Install the dependencies
+```shell
+npm install
+```
+
+3. Build the parser
+```shell
+npm run parser
+```
+
+4. Run the sample script
+```shell
+npm run start
+```
