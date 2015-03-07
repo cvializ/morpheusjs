@@ -1,3 +1,7 @@
+// 3 kinds of calls
+// 1. Full-line-only event call. Consists of member_expression primary_expression*
+// 2. A blocking call using a builtin call keyword, e.g. WAITTHREAD, WAITEXEC
+// 3. A non-blocking call using a builtin call keyboard, e.g. THREAD, EXEC
 
 %nonassoc NO_ELSE
 %nonassoc ELSE
@@ -56,10 +60,9 @@ statement
     | switch_statement
     | try_statement
     | expression_statement
-    | labelled_statement
+    | labeled_statement
     //| identifier prim_expr*
     ;
-
 
 compound_statement
     : '{' statement_list '}'
@@ -223,15 +226,15 @@ default_clause
         }
     ;
 
-labelled_statement
-    : IDENTIFIER labelled_statement_arguments ':'
+labeled_statement
+    : IDENTIFIER labeled_statement_arguments ':'
         {
-            $$ = new LabeledStatementNode(new IdentifierNode($1, createSourceLocation(null, @1, @1)), $3, createSourceLocation(null, @1, @3));
+            $$ = new LabeledStatementNode(new IdentifierNode($1, createSourceLocation(null, @1, @1)), $2, createSourceLocation(null, @1, @3));
         }
     ;
 
-labelled_statement_arguments
-    : labelled_statement_arguments labelled_statement_argument
+labeled_statement_arguments
+    : labeled_statement_arguments labeled_statement_argument
         {
             $$ = $1.concat($2);
         }
@@ -241,7 +244,7 @@ labelled_statement_arguments
         }
     ;
 
-labelled_statement_argument
+labeled_statement_argument
     : LOCAL '.' IDENTIFIER
         {
             // TODO: is this ok?
@@ -259,7 +262,6 @@ expression_statement
             $$ = new ExpressionStatementNode($1, createSourceLocation(null, @1, @1));
         }
     ;
-
 
 primary_expression
     : builtin_vars
@@ -281,7 +283,6 @@ primary_expression
 
 member_expression
     : primary_expression
-    | function_expression // ?
     | member_expression '[' expression ']'
         {
             $$ = new MemberExpressionNode($1, $3, true, createSourceLocation(null, @1, @4));
@@ -475,29 +476,70 @@ unary_expression
     ;
 
 postfix_expression
-    : call_expression
-    | call_expression '++'
+    : lefthandside_expression
+    | lefthandside_expression '++'
         {
             $$ = new UpdateExpressionNode("++", $1, false, createSourceLocation(null, @1, @2));
         }
-    | call_expression '--'
+    | lefthandside_expression '--'
         {
             $$ = new UpdateExpressionNode("--", $1, false, createSourceLocation(null, @1, @2));
         }
     ;
 
-call_expression
-    : lefthandside_expression
-    | call_expression call_literal lefthandside_expression
-    ;
 
 lefthandside_expression
     : member_expression
-    //| call_expression
+    | call_expression
     ;
 
-/*call_expression
-    : member_expression call_literal primary_expression*
+
+call_expression
+    : member_expression arguments
+        {
+            $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
+        }
+    | call_expression arguments
+        {
+            $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
+        }
+    /*| call_expression arguments_noparens
+        {
+            $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
+        }*/
+    ;
+
+arguments
+    : '(' ')'
+        {
+            $$ = [];
+        }
+    | '(' argument_list ')'
+        {
+            $$ = $2;
+        }
+    ;
+
+argument_list
+    : primary_expression
+        {
+            $$ = [$1];
+        }
+    | argument_list primary_expression
+        {
+            $$ = $1.concat($2);
+        }
+    ;
+
+/*arguments_noparens
+    : primary_expression
+        {
+            $$ = [$1];
+        }
+    | arguments_noparens primary_expression
+        {
+            $$ = $1.concat($2);
+        }
     ;*/
 
 call_literal
@@ -506,16 +548,6 @@ call_literal
     | EXEC
     | WAITEXEC
     | WAITTILL
-    ;
-
-func_prim_expr
-    //: identifier prim_expr*
-    //| nonident_prim_expr identifier prim_expr*
-    //: '-' func_prim_expr %prec UMINUS
-    : '~' func_prim_expr
-    //| '!' func_prim_expr
-    | identifier '::' prim_expr
-    | nonident_prim_expr '::' prim_expr
     ;
 
 builtin_vars

@@ -1,4 +1,5 @@
 var fs = require('fs');
+var util = require('util');
 var parser = require('./morpheus');
 
 var toParse = process.argv[2];
@@ -10,4 +11,4 @@ var ast = parser.parse(contents.toString('utf8'));
 
 debugger;
 
-console.dir(ast);
+console.log(util.inspect(ast, false, null));
