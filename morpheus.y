@@ -59,9 +59,9 @@ statement
     | return_statement
     | switch_statement
     | try_statement
+    | event_statement
     | expression_statement
     | labeled_statement
-    //| identifier prim_expr*
     ;
 
 compound_statement
@@ -252,6 +252,12 @@ labeled_statement_argument
         }
     ;
 
+// TODO: This looks promising?
+event_statement
+    : member_expression call_literal IDENTIFIER member_expression* ';'
+    | member_expression IDENTIFIER member_expression* ';'
+    ;
+
 expression_statement
     : expression ';'
         {
@@ -262,6 +268,7 @@ expression_statement
             $$ = new ExpressionStatementNode($1, createSourceLocation(null, @1, @1));
         }
     ;
+
 
 primary_expression
     : builtin_vars
@@ -291,7 +298,7 @@ member_expression
         {
             $$ = new MemberExpressionNode($1, $3, false, createSourceLocation(null, @1, @3));
         }
-    | '$' '(' member_expression ')'
+    | '$' '(' expression ')'
         {
             $$ = new MemberExpressionNode($1, $3, false, createSourceLocation(null, @1, @4));
         }
@@ -325,7 +332,7 @@ assignment_operator
 
 expression
     : assignment_expression
-    | expression ',' assignment_expression // TODO: is this allowed?
+    //| expression ',' assignment_expression // TODO: is this allowed?
     ;
 
 // ternary
@@ -503,10 +510,6 @@ call_expression
         {
             $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
         }
-    /*| call_expression arguments_noparens
-        {
-            $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
-        }*/
     ;
 
 arguments
@@ -530,17 +533,6 @@ argument_list
             $$ = $1.concat($2);
         }
     ;
-
-/*arguments_noparens
-    : primary_expression
-        {
-            $$ = [$1];
-        }
-    | arguments_noparens primary_expression
-        {
-            $$ = $1.concat($2);
-        }
-    ;*/
 
 call_literal
     : THREAD
@@ -576,11 +568,15 @@ literal
 
 
 array_literal_constant
-    : literal '::' literal
+    : literal '::' (literal|identifier)
         {
             $$ = new ConstantArrayLiteralNode([$1, $3], createSourceLocation(null, @1, @3));
         }
-    | array_literal_constant '::' literal
+    | identifier '::' (literal|identifier)
+        {
+            $$ = new ConstantArrayLiteralNode([$1, $3], createSourceLocation(null, @1, @3));
+        }
+    | array_literal_constant '::' (identifier|literal)
         {
             $1.elements.concat($3);
             $1.loc = createSourceLocation(null, @1, @3);
@@ -650,7 +646,10 @@ parser.parse = function(source, args) {
 
 parser.parseError = function(str, hash) {
     //		alert(JSON.stringify(hash) + "\n\n\n" + parser.newLine + "\n" + parser.wasNewLine + "\n\n" + hash.expected.indexOf("';'"));
-    if (!((hash.expected && hash.expected.indexOf("';'") >= 0) && (hash.token === "}" || hash.token === "EOF" || hash.token === "BR++" || hash.token === "BR--" || parser.newLine || parser.wasNewLine))) {
+    var expectedSemicolon = (hash.expected && hash.expected.indexOf("';'") >= 0);
+    var noSemicolonNeeded = (hash.token === "}" || hash.token === "EOF" || hash.token === "BR++" || hash.token === "BR--" || parser.newLine || parser.wasNewLine);
+
+    if (!expectedSemicolon || !noSemicolonNeeded) {
         throw new SyntaxError(str);
     }
 };
