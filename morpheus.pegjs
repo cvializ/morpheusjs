@@ -19,60 +19,114 @@ block_statement
     = '{' _ statement* _ '}' _
 
 expression_statement
-    = expression ';' _
-    / expression '\n' _
-
-iteration_statement
-    = 'while' _ '(' _ expression _ ')' _ statement
-    / 'for' _ '(' _ initializer:expression _ ';' _ comparison:expression _ ';' _ increment:expression* _ ')' _ statement _
+    = expression:expression EOS
+        {
+            return { type: 'ExpressionStatement', expression: expression };
+        }
 
 if_statement
-    = 'if' _ '(' expression ')' _ statement _ 'else' _ statement _
-    / 'if' _ '(' expression ')' _ statement _
+    = 'if' __ '(' __ test:expression __ ')' __ consequent:statement __ 'else' __ alternate:statement
+        {
+            return { type: 'IfStatement', test: test, consequent: consequent, alternate: alternate };
+        }
+    / 'if' __ '(' __ test:expression __ ')' __ consequent:statement
+        {
+            return { type: 'IfStatement', test: test, consequent: consequent, alternate: null };
+        }
 
+iteration_statement
+    = 'while' __ '(' __ test:expression __ ')' __ body:statement
+        {
+            return { type: 'WhileStatement', test: test, body: body };
+        }
+    / 'for' __ '(' __ init:expression __ ';' __ test:expression __ ';' __ update:expression* __ ')' __ body:statement
+        {
+            return {
+              type: 'ForStatement',
+              init: init, //extractOptional(init, 0),
+              test: test, //extractOptional(test, 0),
+              update: update, //extractOptional(update, 0),
+              body: body
+            };
+        }
+        
 continue_statement
-    = 'continue' _ identifier _ ';'
-    / 'continue' _ ';'
+    = 'continue' EOS
+        {
+            return { type: 'ContinueStatement', label: null };
+        }
+    / 'continue' _ label:identifier _ EOS
+        {
+            return { type: 'ContinueStatement', label: label };
+        }
 
 break_statement
-    = 'break' _ identifier _ ';'
-    / 'break' _ ';'
+    = 'break' EOS
+        {
+            return { type: 'BreakStatement', label: null };
+        }
+    / 'break' _ identifier EOS
+        {
+            return { type: 'BreakStatement', label: label };
+        }
+
 
 return_statement
-    = 'end' _ expression _ ';'
-    / 'end' _ ';'
+    = 'end' EOS
+    / 'end' _ argument:expression EOS
+        {
+            return { type: 'EndStatement', argument: argument };
+        }
 
 labeled_statement
-    = identifier ':'
-    / identifier (_ identifier)+ ':'
+    = label:identifier __ ':'
+        {
+            return { type: 'LabeledStatement', arguments: [] };
+        }
+    / label:identifier (_ argument:identifier)+ __ ':'
+        {
+            return { type: 'LabeledStatement', arguments: [ 'has args' ] };
+        }
 
 empty_statement
-    = ';' _
+    = ';'
+        {
+            return { type: 'EmptyStatement' };
+        }
+
+expression
+    = numeric_literal / string_literal / vector_literal
 
 identifier
-    = [A-Za-z_$][A-Za-z_$0-9]+
+    = [A-Za-z_$][A-Za-z_$0-9]*
         {
-            return text();
+            return { type: 'Identifier', name: text() };
         }
 
 numeric_literal
-    = ([0-9]+)('.' [0-9]+)?
+    = '-'? ([0-9]+) ('.' [0-9]+)?
         {
-            return parseFloat(text(), 10);
+            return { type: 'Literal', value: parseFloat(text(), 10) };
         }
 
 string_literal
     = q [^"]+ q
         {
-            return text().slice(1, -1);
+            return { type: 'Literal', value: text().slice(1, -1) };
         }
     / q q
         {
-            return '';
+            return { type: 'Literal', value: '' };
         }
 
 q
     = '"' / '\''
+
+vector_literal
+    = '(' _ one:numeric_literal __ two:numeric_literal __ three:numeric_literal _ ')'
+        {
+            return { type: 'Literal', value: [ one, two, three ] };
+        }
 
 /* Skipped */
 
