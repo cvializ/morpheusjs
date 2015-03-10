@@ -61,7 +61,7 @@ statement
     | try_statement
     | event_statement
     | expression_statement
-    | labeled_statement
+    | labeled_statement_line
     ;
 
 compound_statement
@@ -226,6 +226,11 @@ default_clause
         }
     ;
 
+labeled_statement_line
+    : labeled_statement ';'
+    | labeled_statement error
+    ;
+
 labeled_statement
     : IDENTIFIER labeled_statement_arguments ':'
         {
@@ -252,10 +257,21 @@ labeled_statement_argument
         }
     ;
 
-// TODO: This looks promising?
 event_statement
-    : member_expression call_literal IDENTIFIER member_expression* ';'
-    | member_expression IDENTIFIER member_expression* ';'
+    : event_statement_line ';'
+    | event_statement_line error
+    ;
+
+// TODO: This looks promising?
+event_statement_line
+    : member_expression call_literal IDENTIFIER member_expression*
+        {
+            $$ = new EventStatementNode($1, $2, [$3].concat($4), createSourceLocation(null, @1, @4));
+        }
+    | member_expression IDENTIFIER member_expression*
+        {
+            $$ = new EventStatementNode($1, $2, [].concat($3), createSourceLocation(null, @1, @3));
+        }
     ;
 
 expression_statement
@@ -276,9 +292,6 @@ primary_expression
             $$ = new ThisExpressionNode(createSourceLocation(null, @1, @1));
         }
     | identifier
-        {
-            $$ = new IdentifierNode($1, createSourceLocation(null, @1, @1));
-        }
     | literal
     | array_literal_constant // array literals can't contain array literals, so they're out here
     | vector_literal // vectors can't contain vectors, so they're out here
@@ -471,10 +484,10 @@ unary_expr
         {
             $$ = new UnaryExpressionNode("!", true, $2, createSourceLocation(null, @1, @2));
         }
-    | ISALIVE unary_expression
+    /*| ISALIVE unary_expression
         {
             $$ = new UnaryExpressionNode("ISALIVE", true, $2, createSourceLocation(null, @1, @2));
-        }
+        }*/
     ;
 
 unary_expression
@@ -498,6 +511,7 @@ postfix_expression
 lefthandside_expression
     : member_expression
     | call_expression
+    | unscoped_call_expression
     ;
 
 
@@ -509,6 +523,17 @@ call_expression
     | call_expression arguments
         {
             $$ = new CallExpressionNode($1, $2, createSourceLocation(null, @1, @2));
+        }
+    ;
+
+unscoped_call_expression
+    : unscoped_call '(' member_expression* ')'
+        {
+            $$ = new CallExpressionNode($1, [].concat($3), createSourceLocation(null, @1, @3));
+        }
+    | unscoped_call member_expression*
+        {
+            $$ = new CallExpressionNode($1, [].concat($2), createSourceLocation(null, @1, @2));
         }
     ;
 
@@ -540,6 +565,127 @@ call_literal
     | EXEC
     | WAITEXEC
     | WAITTILL
+    ;
+
+unscoped_call
+    : CANCELFOR
+    | CLASSNAME
+    | COMMANDDELAY
+    | DELAYTHROW
+    | DELETE
+    | IMMEDIATEREMOVE
+    | OWNER
+    | REMOVE
+    | THROW
+    | WAITEXEC
+    | UNREGISTER
+    | ABS
+    | ADDOBJECTIVE
+    | ALIASCACHE
+    | ALL_AI_OFF
+    | ALL_AI_ON
+    | ANGLES_POINTAT
+    | ANGLES_TOFORWARD
+    | ANGLES_TOLEFT
+    | ANGLES_TOUP
+    | ASSERT
+    | BOOL
+    | BSPTRANSITION
+    | CACHE
+    | CAM
+    | CENTERPRINT
+    | CINEMATIC
+    | CLEAR_OBJECTIVE_POS
+    | CLEARFADE
+    | CLEARLETTERBOX
+    | CREATELISTENER
+    | CUECAMERA
+    | CUEPLAYER
+    | DRAWHUD
+    | EARTHQUAKE
+    | ENTITY
+    | ERROR
+    | FADEIN
+    | FADEOUT
+    | FADESOUND
+    | FLOAT_CMD
+    | FORCEMUSIC
+    | FREEZEPLAYER
+    | GETBOUNDKEY1
+    | GETBOUNDKEY2
+    | GETCVAR
+    | GOTO
+    | HIDEMENU
+    | HIDEMOUSE
+    | HUDDRAW_ALPHA
+    | HUDDRAW_ALIGN
+    | HUDDRAW_COLOR
+    | HUDDRAW_STRING
+    | HUDDRAW_FONT
+    | HUDDRAW_RECT
+    | HUDDRAW_SHADER
+    | IPRINTLN
+    | HUDDRAW_VIRTUALSIZE
+    | INT
+    | IPRINTLN_NOLOC
+    | IPRINTLNBOLD
+    | IPRINTLNBOLD_NOLOC
+    | ISALIVE
+    | KILLCLASS
+    | KILLENT
+    | LETTERBOX
+    | LEVELTRANSITION
+    | LOC_CONVERT_STRING
+    | LOCPRINT
+    | MAP
+    | MISSIONFAILED
+    | MISSIONTRANSITION
+    | MPRINT
+    | MPRINTLN
+    | MUSIC
+    | NONCINEMATIC
+    | MUSICVOLUME
+    | PAUSE
+    | PRINT
+    | POPMENU
+    | PRINT3D
+    | PUSHMENU
+    | PRINTLN
+    | RADIUSDAMAGE
+    | RANDOMFLOAT
+    | RANDOMINT
+    | RELEASEPLAYER
+    | REMOVECLASS
+    | REMOVEENT
+    | RESTOREMUSICVOLUME
+    | RESTORESOUNDTRACK
+    | SERVER
+    | SET_OBJECTIVE_POS
+    | SETCURRENTOBJECTIVE
+    | SETCVAR
+    | SETLIGHTSTYLE
+    | SHOWMENU
+    | SIGHTTRACE
+    | SOUNDTRACK
+    | SPAWN
+    | STRING_COMMAND
+    | STUFFCMD
+    | TEAMWIN
+    | TIMEOUT
+    | TRIGGER
+    | TRACE
+    | VECTOR_CLOSER
+    | VECTOR_ADD
+    | VECTOR_CROSS
+    | VECTOR_DOT
+    | VECTOR_LENGTH
+    | VECTOR_NORMALIZE
+    | VECTOR_SCALE
+    | VECTOR_SUBTRACT
+    | VECTOR_TOANGLES
+    | VECTOR_WITHIN
+    | WAITFRAME
+    | WAIT
     ;
 
 builtin_vars
@@ -694,6 +840,14 @@ function LabeledStatementNode(label, body, loc) {
     this.type = "LabeledStatement";
     this.label = label;
     this.body = body;
+    this.loc = loc;
+}
+
+function EventStatementNode(source, event, arguments, loc) {
+    this.type = "EventStatement";
+    this.source = source;
+    this.event = event;
+    this.arguments = arguments;
     this.loc = loc;
 }
 
@@ -958,6 +1112,7 @@ parser.ast.BlockStatementNode = BlockStatementNode;
 parser.ast.ExpressionStatementNode = ExpressionStatementNode;
 parser.ast.IfStatementNode = IfStatementNode;
 parser.ast.LabeledStatementNode = LabeledStatementNode;
+parser.ast.EventStatementNode = EventStatementNode;
 parser.ast.BreakStatementNode = BreakStatementNode;
 parser.ast.ContinueStatementNode = ContinueStatementNode;
 parser.ast.WithStatementNode = WithStatementNode;

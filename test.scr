@@ -1,71 +1,219 @@
+// -the Canal-
+// ARCHITECTURE: M.S
+// SCRIPTING: W.S & M.S
+// TEXTURES: W.S
 
-my_main_label local.test:
+main:
+    setcvar "g_obj_alliedtext1" "Destroy the bridge"
+    setcvar "g_obj_alliedtext2" "to the south to"
+    setcvar "g_obj_alliedtext3" "stop the Axis attack."
+    setcvar "g_obj_axistext1"   "Prevent the Allies"
+    setcvar "g_obj_axistext2"   "from destroying our"
+    setcvar "g_obj_axistext3"   "only path for advance."
+    setcvar "g_scoreboardpic" "myr";
 
-local.value = 3
-local.prop[local.value] = "cool"
+	//local.master = spawn ScriptMaster;
+	local.master aliascache snd_binoculars "sound/mechanics/Mec_RadioNoise_11.wav" soundparms 0.5 0.2 0.9 0.1 160 1600 item loaded maps "dm obj moh";
+	local.master aliascache snd_binoculars "sound/mechanics/Mec_RadioNoise_11.wav" soundparms 0.5 0.2 0.9 0.1 160 1600 item loaded maps "dm obj moh";
+    aliascache snd_binoculars "sound/mechanics/Mec_RadioNoise_11.wav" soundparms 0.5 0.2 0.9 0.1 160 1600 item loaded maps "dm obj moh";
+    // local.master aliascache elevator_gate "sound/mechanics/Mec_ElevatorGate_03.wav" soundparms 1.5 0.0 1.0 0.0 300 3000 auto loaded maps "dm obj moh";
+	// local.master aliascache elevator_start "sound/null.wav" soundparms 1.5 0.0 1.0 0.0 800 3000 auto loaded maps "dm obj moh";
+	// local.master aliascache elevator_run "sound/mechanics/Mec_ElevatorRun_01.wav" soundparms 1.5 0.0 1.0 0.0 800 3000 auto loaded maps "dm obj moh";
+	// local.master aliascache elevator_stop "sound/null.wav" soundparms 1.5 0.0 1.0 0.0 800 3000 auto loaded maps "dm obj moh";
+	// local.master aliascache alarm_switch "sound/mechanics/Mec_Switch_05.wav" soundparms 1.5 0.0 1.0 0.0 800 3000 auto loaded maps "dm obj moh";
+	// local.master aliascache snd_papers "sound/items/Snd_Papers_show.wav" soundparms 0.9 0.2 1.0 0.0 160 1600 item loaded maps "dm obj moh";
+	// local.master aliascache med_kit "sound/items/Health_MedKit_01.wav" soundparms 1.0 0.0 1.0 0.0 160 1600 item loaded maps "dm obj moh";
+	// local.master aliascache med_canteen "sound/items/Health_Canteen_01.wav" soundparms 1.0 0.0 1.0 0.0 160 1600 item loaded maps "dm obj moh";
 
-local.negative_test = ( -3 2 1 )
-
-local.test = ( 3.2 -2.000 111.1 )
-local.wow = NULL
-local.me = !self
-local.x = 1::2::3::4
-
-if (getcvar(skill)) { local.me = !self }
-
-while (level.lol) {
-    local.phrase = "Keep laughing, bub"
-}
-
-// This loop increases my love ten times
-level waittill spawn
-
-    for (local.i=1;local.i<$bazooka_wall.size+1;local.i++)
-    {
-        if (isalive $bazooka_wall[local.i])
-        {
-            $bazooka_wall[local.i] threatbias ignoreme;
-            //$bazooka_wall[local.i] dontdropweapons
-        }
-    }
-
-//*************************************************************************
-// prep the ai
-//*************************************************************************
-ai_prep:
-
-println ("XXX Preping the AI")
-
-//*** disable the AI in the players higgins boat
-$higgins1_ranger1 thread ai_friendly_setup
-$higgins1_ranger2 thread ai_friendly_setup
-//$higgins1_ranger3 thread ai_friendly_setup;
-//$higgins1_ranger4 thread ai_friendly_setup;
-//$higgins1_ranger5 thread ai_friendly_setup;
-
-($higgins2_move2::$higgins3_move2::$higgins4_move2::$higgins5_move2::$higgins6_move2) waitmove;
-
-$(local.x) thread higgins_forward_motions;
-
-switch (local.type) {
-    case 10:
-        local.ten += 10
-        local.zero -= 0
-        break
-    case subzero:
-        level.ten = 10
-}
-
-cool_label:
-another_cool_label:
-labels_galore:
-
+	// level waitTill prespawn;
+    //
+	// exec "global/DMprecache.scr";
+	// level.script = "maps/obj/elevator_ripped_out.scr";
+	// exec "global/ambient.scr" canal;
+    //
+	//level waittill spawn;
+    //
+	// thread elevator_preparation;
+    //
+	// level waittill roundstart;
 end
 
-try {
-    // yea
-} catch (e) {
-    // ok
-}
+elevator_preparation:
 
-local.test = "duck"
+	iprintln "elevator_preparation starting...";
+	//*********  BIND  ***************
+	$lift_inswitch bind $lift_cab
+	$lift_trigger bind $lift_cab
+	$lift_inswitch anim off
+	//*********** TRIGGERS ***************
+	$upper_lift_trigger nottriggerable
+	$lower_lift_trigger nottriggerable
+	$lift_trigger nottriggerable
+	//***********   Doors   ***************
+	$lower_lift_door_right openportal // Opens the areaportal and pierces the area
+	$lower_lift_door_right playsound elevator_gate
+	$lower_lift_door_right moveBackward 56
+	$lower_lift_door_left moveForward 56
+	$lower_lift_door_right move
+	$lower_lift_door_left waitmove
+	level.elepos = 0 // 0=down  1=up  -1=moving
+
+	thread activate_lift_sensors
+	iprintln "...elevator_preparation done"
+end
+
+activate_lift_sensors:
+	iprintln "activate_lift_sensors starting..."
+	thread ride_switch_sensor
+	thread lower_call_sensor
+	thread upper_call_sensor
+	iprintln "...activate_lift_sensors done"
+end
+
+ride_switch_sensor:
+	iprintln "ride_switch_sensor starting..."
+	$lift_trigger triggerable
+	while(true) {
+		$lift_trigger waittill trigger
+		if(level.elepos == 1) {
+			waitthread lift_move_down parm.other
+		} else {
+			if(level.elepos == 0) {
+				waitthread lift_move_up parm.other
+			} else {
+				parm.other iprint "Elevator is busy" 0
+			}
+		}
+		wait 1
+	}
+	iprintln "...ride_switch_sensor done"
+end
+
+// lower_call_sensor:
+// 	iprintln "lower_call_sensor starting..."
+// 	$lower_lift_trigger triggerable
+// 	while(true) {
+// 		$lower_lift_trigger waittill trigger
+// 		if(level.elepos == 1) {
+// 			thread lift_move_down parm.other
+// 		} else {
+// 			if(level.elepos == 0) {
+// 				parm.other iprint "Elevator is here" 0
+// 			} else {
+// 				parm.other iprint "Elevator is busy" 0
+// 			}
+// 		}
+// 		wait 1
+// 	}
+// 	iprintln "...lower_call_sensor done"
+// end
+//
+// upper_call_sensor:
+// 	iprintln "upper_call_sensor starting..."
+// 	$upper_lift_trigger triggerable
+// 	while(true) {
+// 		$upper_lift_trigger waitTill trigger
+// 		if(level.elepos == 0) {
+// 			thread lift_move_up parm.other
+// 		} else {
+// 			if(level.elepos == 1) {
+// 				parm.other iprint "Elevator is here" 0
+// 			} else {
+// 				parm.other iprint "Elevator is busy" 0
+// 			}
+// 		}
+// 		wait 1
+// 	}
+// 	iprintln "...upper_call_sensor done"
+// end
+//
+// //************   LIFT MOVE UP ************
+// lift_move_up local.user:
+// 	iprintln "lift_move_up starting..."
+// 	level.elepos = -1 // 0=down  1=up  -1=moving
+// 	waitthread activate_all_switches
+// 	// CLOSE LOWER DOORS
+// 	$lower_lift_door_right playsound elevator_gate
+// 	$lower_lift_door_right moveForward 56
+// 	$lower_lift_door_left moveBackward 56
+// 	$lower_lift_door_right move
+// 	$lower_lift_door_left waitmove
+// 	$lower_lift_door_right closeportal
+// 	wait 1
+// 	// MOVE ELEVATOR UP
+// 	$lift_cab playsound elevator_start
+// 	$lift_cab moveto $waypoint_up
+// 	$lift_cab playsound elevator_run
+// 	$lift_cab waitmove
+// 	$lift_cab playsound elevator_stop
+// 	waitthread deactivate_all_switches
+// 	// OPEN UPPER DOORS
+// 	wait 1
+// 	$upper_lift_door_right openportal
+// 	$upper_lift_door_right playsound elevator_gate
+// 	$upper_lift_door_right moveBackward 56
+// 	$upper_lift_door_left moveForward 56
+// 	$upper_lift_door_right move
+// 	$upper_lift_door_left waitmove
+// 	level.elepos = 1 // 0=down  1=up  -1=moving
+// 	iprintln "...lift_move_up done"
+// end
+//
+// //***********   LIFT MOVE DOWN ************
+// lift_move_down local.user:
+// 	iprintln "lift_move_down starting..."
+// 	level.elepos = -1 // 0=down  1=up  -1=moving
+// 	waitthread activate_all_switches
+// 	// CLOSE UPPER DOORS
+// 	$upper_lift_door_right playsound elevator_gate
+// 	$upper_lift_door_right moveForward 56
+// 	$upper_lift_door_left moveBackward 56
+// 	$upper_lift_door_right move
+// 	$upper_lift_door_left waitmove
+// 	$upper_lift_door_right closeportal
+// 	wait 1
+// 	// MOVE ELEVATOR DOWN
+// 	$lift_cab playsound elevator_start
+// 	$lift_cab moveto $waypoint_down
+// 	$lift_cab playsound elevator_run
+// 	$lift_cab waitmove
+// 	$lift_cab playsound elevator_stop
+// 	waitthread deactivate_all_switches
+// 	// OPEN LOWER DOORS
+// 	wait 1
+// 	$lower_lift_door_right openportal
+// 	$lower_lift_door_right playsound elevator_gate
+// 	$lower_lift_door_right moveBackward 56
+// 	$lower_lift_door_right move
+// 	$lower_lift_door_left moveForward 56
+// 	$lower_lift_door_left waitmove
+// 	level.elepos = 0 // 0=down  1=up  -1=moving
+// 	iprintln "...lift_move_down done"
+// end
+//
+// activate_all_switches:
+// 	iprintln "activate_all_swithches starting..."
+// 	// ACTIVATE SWITCH IN ELEVATOR
+// 	$lift_inswitch playsound alarm_switch
+// 	$lift_inswitch anim turn
+// 	// ACTIVATE UPPER SWITCH
+// 	$lift_switchup playsound alarm_switch
+// 	$lift_switchup anim turn
+// 	// ACTIVATE LOVER SWITCH
+// 	$lift_switchdown playsound alarm_switch
+// 	$lift_switchdown anim turn
+// 	wait 1
+// 	$lift_inswitch anim on
+// 	$lift_switchup anim on
+// 	$lift_switchdown anim on
+// 	iprintln "...activate_all_swithches done"
+// end
+//
+// deactivate_all_switches:
+// 	iprintln "deactivate_all_swithches starting..."
+// 	// DE-ACTIVATE ALL SWITCHES
+// 	$lift_inswitch anim off
+// 	$lift_switchup anim off
+// 	$lift_switchdown anim off
+// 	iprintln "...deactivate_all_swithches done"
+// end

@@ -5,15 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "peg": "pegjs morpheus.pegjs",
     "bandr": "npm run parser && npm run start",
     "start": "node ./ test.scr",
-    "parser": "jison -m commonjs morpheus.y morpheus.l",
-    "parser-d": "jison -t -m commonjs morpheus.y morpheus.l"
+    "parser": "jison -m commonjs morpheus.y morpheus.l"
   },
   "author": "Carlos Vializ (cv@vt.edu)",
   "license": "MIT",
   "dependencies": {
     "jison": "^0.4.15",
+    "pegjs": "^0.8.0",
     "reflect": "^0.1.3"
   }
 }

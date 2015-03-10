@@ -1,0 +1,102 @@
+
+my_main_label local.test:
+
+local.value = 3
+local.prop[local.value] = "cool"
+
+local.negative_test = ( -3 2 1 )
+
+local.test = ( 3.2 -2.000 111.1 )
+local.wow = NULL
+local.me = !self
+local.x = 1::2::3::4
+
+
+if (getcvar(skill))
+{
+
+    local.me = !self;
+}
+
+while (level.lol) {
+    local.phrase = "Keep laughing, bub"
+}
+
+// This loop increases my love ten times
+level waittill spawn
+
+    for (local.i=1;local.i<$bazooka_wall.size+1;local.i++)
+    {
+        if (isalive $bazooka_wall[local.i])
+        {
+            $bazooka_wall[local.i] threatbias ignoreme
+            $bazooka_wall[local.i] dontdropweapons
+        }
+    }
+
+//*************************************************************************
+// prep the ai
+//*************************************************************************
+ai_prep:
+
+println "XXX Preping the AI";
+
+//*** disable the AI in the players higgins boat
+$higgins1_ranger1 thread ai_friendly_setup
+$higgins1_ranger2 thread ai_friendly_setup
+//$higgins1_ranger3 thread ai_friendly_setup;
+//$higgins1_ranger4 thread ai_friendly_setup;
+//$higgins1_ranger5 thread ai_friendly_setup;
+
+($higgins2_move2::$higgins3_move2::$higgins4_move2::$higgins5_move2::$higgins6_move2) waitmove;
+
+local.random = randomfloat(3)
+
+$(local.x) thread higgins_forward_motions;
+
+switch (local.type) {
+    case 10:
+        local.ten += 10
+        local.zero -= 0
+        break
+    case subzero:
+        level.ten = 10
+}
+
+cool_label:
+another_cool_label:
+labels_galore:
+
+end
+
+try {
+    // yea
+} catch (e) {
+    // ok
+}
+
+local.test = "duck"
+
+
+start:
+
+//*** set the soundtrack
+soundtrack "music/m3l1a.mus";
+
+//*** prep the players weapons
+exec "global/loadout.scr" "maps/m3l1a.scr";
+
+//*************************************************************
+//  wait for the level to spawn
+//*************************************************************
+level waittill prespawn;
+
+	//*** setup the farplane
+	if (getcvar(g_ddayfog) == "2")
+	{
+		$world farplane 2000;
+	}
+	else
+	{
+		$world farplane 3500;
+	}
