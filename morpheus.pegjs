@@ -91,7 +91,7 @@ SourceElement
 Statement
     = Block
     / ExpressionStatement
-    / EventStatement
+    / AssignmentEventStatement
     / IterationStatement
     / IfStatement
     / ContinueStatement
@@ -190,12 +190,16 @@ EmptyStatement
             return { type: 'EmptyStatement' };
         }
 
+AssignmentEventStatement
+    = assignee:MemberExpression _ '=' _ EventStatement
+    / EventStatement
+
 EventStatement
-    = owner:MemberExpression _ method:Identifier args:(' ' MemberExpression)+ EOS
+    = owner:MemberExpression _ method:Identifier args:(' '+ MemberExpression)+ EOS
         {
             return { type: "EventStatement", owner: owner, method: method, arguments: args };
         }
-    / method:Identifier args:( ' ' MemberExpression)+ EOS
+    / method:Identifier args:( ' '+ MemberExpression)+ EOS
         {
             return { type: "EventStatement", owner: null, method: method, arguments: args };
         }
