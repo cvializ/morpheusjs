@@ -195,11 +195,11 @@ AssignmentEventStatement
     / EventStatement
 
 EventStatement
-    = owner:MemberExpression _ method:Identifier args:(' '+ MemberExpression)+ EOS
+    = owner:MemberExpression _ method:Identifier args:(' '+ LeftHandSideExpression)* EOS
         {
             return { type: "EventStatement", owner: owner, method: method, arguments: args };
         }
-    / method:Identifier args:( ' '+ MemberExpression)+ EOS
+    / method:Identifier args:( ' '+ LeftHandSideExpression)+ EOS
         {
             return { type: "EventStatement", owner: null, method: method, arguments: args };
         }
@@ -335,6 +335,7 @@ UnaryOperator
   / $("-" !"=")
   / "~"
   / "!"
+  / "isalive"
 
 MultiplicativeExpression
   = first:UnaryExpression
@@ -491,9 +492,7 @@ IdentifierName "identifier"
     }
 
 IdentifierStart
-  = [A-Za-z]
-  / "$"
-  / "_"
+  = [$_A-Za-z]
 
 IdentifierPart
   = IdentifierStart
@@ -580,6 +579,7 @@ Keyword
     / ElseToken
     / ForToken
     / IfToken
+    / IsAliveToken
     / NullToken
     / NilToken
     / EndToken
@@ -610,6 +610,7 @@ DefaultToken    = "default"    !Identifier
 ElseToken       = "else"       !Identifier
 ForToken        = "for"        !Identifier
 IfToken         = "if"         !Identifier
+IsAliveToken    = "isalive"    !Identifier
 NullToken       = "null"       !Identifier
 NilToken        = "nil"        !Identifier
 EndToken        = "end"        !Identifier
