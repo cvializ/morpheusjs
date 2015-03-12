@@ -175,14 +175,17 @@ ReturnStatement
         }
 
 LabeledStatement
-    = label:Identifier __ ':'
+    = label:Identifier __ LabelOperator
         {
-            return { type: 'LabeledStatement', arguments: [] };
+            return { type: 'LabeledStatement', name: label, arguments: [] };
         }
-    / label:Identifier args:(_ MemberExpression)+ _ ':'
+    / label:Identifier _ first:MemberExpression rest:(_ MemberExpression)* _ LabelOperator
         {
-            return { type: 'LabeledStatement', arguments: args };
+            return { type: 'LabeledStatement', name: label, arguments: buildList(first, rest, 1) };
         }
+
+LabelOperator
+    = $(":" !":")
 
 EmptyStatement
     = ';'
@@ -195,13 +198,13 @@ AssignmentEventStatement
     / EventStatement
 
 EventStatement
-    = owner:MemberExpression _ method:Identifier args:(' '+ MemberExpression)+ EOS
+    = owner:MemberExpression _ method:Identifier ' ' first:MemberExpression rest:(' '+ MemberExpression)* EOS
         {
-            return { type: "EventStatement", owner: owner, method: method, arguments: args };
+            return { type: "EventStatement", owner: owner, method: method, arguments: buildList(first, rest, 1) };
         }
-    / method:Identifier args:( ' '+ MemberExpression)+ EOS
+    / method:Identifier first:MemberExpression rest:(' '+ MemberExpression)* EOS
         {
-            return { type: "EventStatement", owner: null, method: method, arguments: args };
+            return { type: "EventStatement", owner: null, method: method, arguments: buildList(first, rest, 1) };
         }
 
 Expression
@@ -211,8 +214,19 @@ Expression
         : first;
     }
 
+ArrayConstant
+  = first:ArrayConstantElement rest:('::' ArrayConstantElement)+
+      {
+        return { type: "ArrayConstant", elements: buildList(first, rest, 1) };
+      }
+
+ArrayConstantElement
+  = Literal
+  / Identifier
+
 PrimaryExpression
   = builtin:$(BuiltinVariables) { return { type: "ThisExpression", value: builtin }; }
+  / ArrayConstant
   / Identifier
   / Literal
   / "(" __ expression:Expression __ ")" { return expression; }
@@ -513,6 +527,25 @@ StringLiteral "string"
       return { type: "Literal", value: chars.join("") };
     }
 
+VectorLiteral
+    = '(' _ one:NumericLiteral __ two:NumericLiteral __ three:NumericLiteral _ ')'
+        {
+            return { type: 'Literal', value: [ one, two, three ] };
+        }
+
+NullLiteral
+    = NullToken { return null; }
+
+NilLiteral
+    = NilToken { return undefined; }
+
+Literal
+    = NumericLiteral
+    / StringLiteral
+    / VectorLiteral
+    / NullLiteral
+    / NilLiteral
+
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) SourceCharacter { return text(); }
   / "\\" sequence:EscapeSequence { return sequence; }
@@ -551,25 +584,6 @@ NonEscapeCharacter
 EscapeCharacter
   = SingleEscapeCharacter
   /* / DecimalDigit */
-
-VectorLiteral
-    = '(' _ one:NumericLiteral __ two:NumericLiteral __ three:NumericLiteral _ ')'
-        {
-            return { type: 'Literal', value: [ one, two, three ] };
-        }
-
-NullLiteral
-    = NullToken { return null; }
-
-NilLiteral
-    = NilToken { return undefined; }
-
-Literal
-    = NumericLiteral
-    / StringLiteral
-    / VectorLiteral
-    / NullToken
-    / NilToken
 
 Keyword
     = BreakToken
